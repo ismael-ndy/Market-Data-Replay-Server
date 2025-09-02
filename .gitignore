@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Financial data
+data
+
 # C extensions
 *.so
 
