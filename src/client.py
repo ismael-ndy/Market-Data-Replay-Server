@@ -16,9 +16,9 @@ start_time = time.perf_counter()
 while True:
     data, addr = s.recvfrom(1024)
     if len(data) < HEADER_SIZE:
-        continue  # skip malformed packets
+        continue
 
-    # Unpack header to get seq_num
+    
     header = data[:HEADER_SIZE]
     version, msg_type, flag, seq_num, send_ts = struct.unpack(HEADER_FMT, header)
 

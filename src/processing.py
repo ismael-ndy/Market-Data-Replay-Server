@@ -67,7 +67,6 @@ def data_to_parquet(file_path: str, symbol: str) -> bool | None:
     )
 
     data.drop_in_place("TIMESTAMP")
-    data.sort("DELTA")
 
     data = data.with_columns(
         pl.lit(symbol_id).alias("SYMBOL")
@@ -102,21 +101,42 @@ def join_parquet_files() -> bool | None:
     """
     parquet_dir = './data/parquet'
     combined_df = None
-    file_name = None
-
+    file_count = 0
+    
+    os.makedirs(parquet_dir, exist_ok=True)
+    
     for file in os.listdir(parquet_dir):
-        if file.endswith('.parquet'):
+        if file.endswith('.parquet') and not file == '2025-01.parquet':
             file_path = os.path.join(parquet_dir, file)
-            df = pl.read_parquet(file_path)
-            if combined_df is None:
-                file_name = file.split('-')[1] + '-' + file.split('-')[2].split('.')[0]   # Extract YYYY-MM
-                combined_df = df
-            else:
-                combined_df = pl.concat([combined_df, df])
+            try:
+                df = pl.read_parquet(file_path)
+                print(f"Successfully read: {file_path}")
+                print(f"File shape: {df.shape}")
+                
+                if combined_df is None:
+                    combined_df = df
+                else:
+                    combined_df = pl.concat([combined_df, df])
+                
+                file_count += 1
+                print(f"Combined shape after adding {file}: {combined_df.shape}")
+            except Exception as e:
+                print(f"Error reading {file_path}: {e}")
+    
+    if combined_df is not None and file_count > 0:
+        combined_df = combined_df.sort("DELTA")
+        output_path = f'{parquet_dir}/2025-01.parquet'
+        
+        combined_df.write_parquet(output_path)
+        print(f"Final combined Parquet file written: {output_path}, shape: {combined_df.shape}")
+        
+        # Verification
+        verification_df = pl.read_parquet(output_path)
+        print(f"First 5 rows: {verification_df.head()}")
+        print(f"Last 5 rows: {verification_df.tail()}")
 
-    if combined_df is not None:
-        combined_df.sort("DELTA")
-        combined_df.write_parquet(f'./data/parquet/{file_name}.parquet')
         return True
     else:
+        print("No files were combined.")
         return None
+    
