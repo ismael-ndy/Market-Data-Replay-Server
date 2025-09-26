@@ -7,12 +7,12 @@ from .iterator import FXReplayIterator
 
 from .processing import join_parquet_files, extract_data_folders
 
-# Parse command line arguments
 parser = argparse.ArgumentParser(description='FX Market Data Replay Server')
-parser.add_argument('--speed', type=float, default=10000, help='Replay speed multiplier')
+parser.add_argument('--speed', type=float, default=1, help='Replay speed multiplier')
 parser.add_argument('--skip', type=int, default=0, help='Skip initial minutes of data')
 args = parser.parse_args()
 
+# Uncomment the following lines if you need to preprocess data (first run only)
 # extract_data_folders()
 # join_parquet_files()
 
